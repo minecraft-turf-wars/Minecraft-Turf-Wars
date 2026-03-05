@@ -1,5 +1,5 @@
-name: MyPlugin
+name: TurfWars
 version: '${project.version}'
-main: com.example.myplugin.MyPlugin
+main: com.example.turfwars.TurfWars
 api-version: '1.20'
 description: A basic example plugin.
