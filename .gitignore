@@ -1,0 +1,20 @@
+# Gradle
+.gradle
+build/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+*.class
+
+# Other
+*.log
+out/
+.DS_Store
+/user_jvm_args.txt
+.vscode/
