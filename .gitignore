@@ -12,6 +12,10 @@ build/
 .settings/
 *.class
 
+# Gemini
+.gemini/
+.gemini-history.json
+
 # Other
 *.log
 out/
