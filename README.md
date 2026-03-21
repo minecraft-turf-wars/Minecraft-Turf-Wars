@@ -1,0 +1,1 @@
+A plugin made for the KSU minecraft event server to enable a "turf wars" team battle minigame.
