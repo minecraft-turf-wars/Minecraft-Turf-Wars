@@ -4,44 +4,59 @@ import com.example.turfwars.commands.TurfWarsCommand;
 import com.example.turfwars.events.PlayerJoin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+
 public class TurfWars extends JavaPlugin {
 
-    private GameManager gameManager;
+    private static TurfWars instance;
     private ArenaManager arenaManager;
-    private LobbyManager lobbyManager;
-    private TeamManager teamManager;
+    private GameManager gameManager;
 
     @Override
     public void onEnable() {
-        this.gameManager = new GameManager(this);
-        this.arenaManager = new ArenaManager(this);
-        this.lobbyManager = new LobbyManager(this);
-        this.teamManager = new TeamManager(this);
+        instance = this;
 
+        // Save the template world
+        saveResource("template_world/dummy.txt", true);
+        new File(getDataFolder(), "template_world/dummy.txt").delete();
+
+
+        // Initialize the Managers
+        this.arenaManager = new ArenaManager();
+        this.gameManager = new GameManager(this);
+        this.gameManager.setupGames();
+
+        // Register event listeners
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
-        getCommand("turfwars").setExecutor(new TurfWarsCommand());
+
+        // Register commands
+        getCommand("turfwars").setExecutor(new TurfWarsCommand(this.gameManager));
 
         getLogger().info("TurfWars has been enabled!");
     }
 
     @Override
     public void onDisable() {
+        // Clean up any active games
+        if (gameManager != null) {
+            // Create a copy of the list of games to avoid ConcurrentModificationException
+            for (Game game : new java.util.ArrayList<>(gameManager.getGames())) {
+                gameManager.endGame(game.getName());
+            }
+        }
         getLogger().info("TurfWars has been disabled!");
     }
 
-    public GameManager getGameManager() {
-        return gameManager;
+    public static TurfWars getInstance() {
+        return instance;
     }
 
     public ArenaManager getArenaManager() {
         return arenaManager;
     }
 
-    public LobbyManager getLobbyManager() {
-        return lobbyManager;
-    }
-
-    public TeamManager getTeamManager() {
-        return teamManager;
+    public GameManager getGameManager() {
+        return gameManager;
     }
 }
+
