@@ -2,6 +2,8 @@ package com.example.turfwars.commands;
 
 import com.example.turfwars.Game;
 import com.example.turfwars.GameManager;
+import com.example.turfwars.GameState;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -25,23 +27,27 @@ public class TurfWarsCommand implements CommandExecutor {
 
         Player player = (Player) sender;
 
-        if (args.length == 0) {
+        if (args.length < 2) {
             player.sendMessage(ChatColor.RED + "Usage: /turfwars <list|join|end>");
             return true;
         }
 
-        switch (args[0].toLowerCase()) {
-            case "list":
-                handleListCommand(player);
-                break;
+        String action = args[0].toLowerCase();
+        String gameName = args[1];
+        Game game = gameManager.getGame(gameName);
+
+        switch (action) {
             case "join":
                 handleJoinCommand(player, args);
                 break;
+            case "start":
+                handleStartCommand(player, game);
+                break;
             case "end":
-                handleEndCommand(player, args);
+                handleEndCommand(player, game);
                 break;
             default:
-                player.sendMessage(ChatColor.RED + "Unknown subcommand. Usage: /turfwars <list|join|end>");
+                player.sendMessage(ChatColor.RED + "Unknown subcommand. Usage: /turfwars <join|start|end>");
                 break;
         }
 
@@ -74,18 +80,22 @@ public class TurfWarsCommand implements CommandExecutor {
         }
     }
 
-    private void handleEndCommand(Player player, String[] args) {
-        if (args.length < 2) {
-            player.sendMessage(ChatColor.RED + "Usage: /turfwars end <game_name>");
+    private void handleEndCommand(Player player, Game game) {
+        player.sendMessage(ChatColor.YELLOW + "Ending game: " + game.getName());
+        gameManager.endGame(game.getName());
+    }
+
+    private void handleStartCommand(Player player, Game game){
+        if (game.getState() != GameState.WAITING){
+            player.sendMessage(ChatColor.RED + "Game is already starting or running.");
             return;
         }
-        String gameName = args[1];
-        Game game = gameManager.getGame(gameName);
-        if (game != null) {
-            player.sendMessage("Ending game: " + game.getName());
-            gameManager.endGame(gameName);
-        } else {
-            player.sendMessage("Game not found.");
+        if (game.getPlayers().size() < 1){
+            player.sendMessage(ChatColor.RED + "You need at least one player to start the game.");
+            return;
         }
+
+        player.sendMessage(ChatColor.GREEN + "Forcing start for: " + game.getName());
+        game.startGame();
     }
 }

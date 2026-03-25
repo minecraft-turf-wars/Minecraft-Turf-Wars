@@ -11,7 +11,9 @@ public class TurfWars extends JavaPlugin {
 
     private static TurfWars instance;
     private ArenaManager arenaManager;
+    private LobbyManager lobbyManager;
     private GameManager gameManager;
+    private TeamManager teamManager;
 
     @Override
     public void onEnable() {
@@ -24,11 +26,15 @@ public class TurfWars extends JavaPlugin {
 
         // Initialize the Managers
         this.arenaManager = new ArenaManager();
+        this.lobbyManager = new LobbyManager();
+        this.teamManager = new TeamManager(this);
         this.gameManager = new GameManager(this);
+
         this.gameManager.setupGames();
 
         // Register event listeners
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
+        getServer().getPluginManager().registerEvents(new GameListener(this.gameManager), this);
 
         // Register commands
         getCommand("turfwars").setExecutor(new TurfWarsCommand(this.gameManager));
@@ -48,16 +54,10 @@ public class TurfWars extends JavaPlugin {
         getLogger().info("TurfWars has been disabled!");
     }
 
-    public static TurfWars getInstance() {
-        return instance;
-    }
+    public static TurfWars getInstance() {return instance;}
 
-    public ArenaManager getArenaManager() {
-        return arenaManager;
-    }
+    public ArenaManager getArenaManager() {return arenaManager;}
 
-    public GameManager getGameManager() {
-        return gameManager;
-    }
+    public GameManager getGameManager() {return gameManager;}
 }
 

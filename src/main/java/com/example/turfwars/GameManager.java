@@ -20,7 +20,6 @@ public class GameManager {
 
     public void createGame(String name) {
         Game game = new Game(name);
-        game.startGame();
         games.put(name, game);
     }
 

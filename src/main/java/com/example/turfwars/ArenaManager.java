@@ -42,6 +42,8 @@ public class ArenaManager {
         World arenaWorld = Bukkit.createWorld(new WorldCreator(worldName));
         if (arenaWorld != null) {
             arenaWorld.setAutoSave(false);
+            arenaWorld.setGameRule(org.bukkit.GameRule.KEEP_INVENTORY, true);
+            arenaWorld.setGameRule(org.bukkit.GameRule.DO_IMMEDIATE_RESPAWN, true);
         }
         return arenaWorld;
     }
