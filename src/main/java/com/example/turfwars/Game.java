@@ -1,13 +1,12 @@
 package com.example.turfwars;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 public class Game {
 
@@ -66,8 +65,8 @@ public class Game {
     }
 
     public void addPlayer(Player player) {
-        players.add(player.getUniqueId());
         if (arenaWorld != null) {
+            players.add(player.getUniqueId());
             Location spawnPoint = arenaWorld.getSpawnLocation();
             player.teleport(spawnPoint);
         } else {

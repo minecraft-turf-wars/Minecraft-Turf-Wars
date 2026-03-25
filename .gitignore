@@ -22,3 +22,4 @@ out/
 .DS_Store
 /user_jvm_args.txt
 .vscode/
+reminders.txt

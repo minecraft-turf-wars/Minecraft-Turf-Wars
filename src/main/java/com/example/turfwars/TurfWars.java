@@ -1,10 +1,11 @@
 package com.example.turfwars;
 
-import com.example.turfwars.commands.TurfWarsCommand;
-import com.example.turfwars.events.PlayerJoin;
+import java.io.File;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
+import com.example.turfwars.commands.TurfWarsCommand;
+import com.example.turfwars.events.PlayerJoin;
 
 public class TurfWars extends JavaPlugin {
 
