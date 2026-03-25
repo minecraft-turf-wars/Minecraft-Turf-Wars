@@ -39,11 +39,20 @@ public class GameListener implements Listener{
         Game game = findGame(player);
         if (game == null) return;
 
-        double blockPos = event.getBlock().getLocation().getX();
+        double blockZ = event.getBlock().getLocation().getZ();
+        double divideLine = game.getDivideLine();
 
-        if (game.getBlackTeam().contains(player.getUniqueId()) && blockPos > game.getDivideLine()){
-            event.setCancelled(true);
-            player.sendMessage("§cYou cannot build enemy territory!");
+        if (game.getBlackTeam().contains(player.getUniqueId())){
+            if (blockZ > divideLine){
+                event.setCancelled(true);
+                player.sendMessage("§cYou cannot build enemy territory!");
+            }
+        }
+        else if (game.getGoldTeam().contains(player.getUniqueId())){
+            if (blockZ < divideLine){
+                event.setCancelled(true);
+                player.sendMessage("§cYou cannot build enemy territory!");
+            }
         }
     }
 
@@ -59,7 +68,7 @@ public class GameListener implements Listener{
         player.getInventory().clear();
         player.setGameMode(GameMode.SURVIVAL);
 
-        player.getInventory().addItem(new org.bukkit.inventory.ItemStack(org.bukkit.Material.OAK_PLANKS, 7));
+        player.getInventory().addItem(new org.bukkit.inventory.ItemStack(org.bukkit.Material.GRAY_CONCRETE, 7));
         player.getInventory().addItem(new org.bukkit.inventory.ItemStack(org.bukkit.Material.ARROW, 7));
         player.getInventory().addItem(new org.bukkit.inventory.ItemStack(org.bukkit.Material.BOW, 1));
 

@@ -1,7 +1,5 @@
 package com.example.turfwars;
 
-<<<<<<< Updated upstream
-=======
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -11,7 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.GameMode;
 
->>>>>>> Stashed changes
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -30,9 +27,12 @@ public class Game {
     private World arenaWorld;
     private final String worldName;
 
-    private double divideLine = 0;
-    private final double MIN_BOUND = -50;
-    private final double MAX_BOUND = 50;
+    private double divideLine = 38.5;
+    private final int FLOOR_Y = -61;
+    private final int MIN_X = -43;
+    private final int MAX_X = -1;
+    private final int MIN_Z = 7;
+    private final int MAX_Z = 70;
     private final double MOVE_STEP = 1.0;
 
     private final List<UUID> BLACK_TEAM = new ArrayList<>();
@@ -55,7 +55,7 @@ public class Game {
             for (UUID uuid : players) {
                 Player p = Bukkit.getPlayer(uuid);
                 if (p != null) {
-                    p.getInventory().addItem(new ItemStack(Material.OAK_PLANKS, 1));
+                    p.getInventory().addItem(new ItemStack(Material.GRAY_CONCRETE, 1));
                     p.getInventory().addItem(new ItemStack(Material.ARROW, 1));
                 }
             }
@@ -68,11 +68,29 @@ public class Game {
         } else{
             divideLine -= MOVE_STEP;
         }
+
+        updateTerritoryBlocks();
+
         checkWinCondition();
     }
 
+    public void updateTerritoryBlocks(){
+        if (arenaWorld == null) return;
+        for (int x = MIN_X; x <= MAX_X; x++) {
+            for (int z = MIN_Z; z <= MAX_Z; z++) {
+                Location loc = new Location(arenaWorld, x, FLOOR_Y, z);
+                
+                if (z < divideLine) {
+                    loc.getBlock().setType(Material.BLACK_CONCRETE);
+                } else {
+                    loc.getBlock().setType(Material.YELLOW_CONCRETE);
+                }
+            }
+        }
+    }
+
     private void checkWinCondition(){
-        if (divideLine >= MAX_BOUND || divideLine <= MIN_BOUND){
+        if (divideLine >= MAX_Z || divideLine <= MIN_Z){
             endGame();
         }
     }
@@ -101,7 +119,7 @@ public class Game {
                 p.setHealth(20.0);
                 p.setFoodLevel(20);
                 p.getInventory().addItem(new ItemStack(Material.ARROW, 7));
-                p.getInventory().addItem(new ItemStack(Material.OAK_PLANKS, 7));
+                p.getInventory().addItem(new ItemStack(Material.GRAY_CONCRETE, 7));
                 p.getInventory().addItem(new ItemStack(Material.BOW, 1));
             }
             
@@ -120,6 +138,9 @@ public class Game {
         }
 
         startMechanics();
+
+        this.divideLine = 38.5;
+        updateTerritoryBlocks();
     }
 
     public void endGame() {
@@ -130,18 +151,8 @@ public class Game {
     }
 
     public void addPlayer(Player player) {
-<<<<<<< Updated upstream
-        if (arenaWorld != null) {
-            players.add(player.getUniqueId());
-            Location spawnPoint = arenaWorld.getSpawnLocation();
-            player.teleport(spawnPoint);
-        } else {
-            player.sendMessage("Arena world is not ready yet!");
-=======
-
         if (!players.contains(player.getUniqueId())) {
             players.add(player.getUniqueId());
->>>>>>> Stashed changes
         }
 
         LobbyManager.getInstance().sendToLobby(player);
@@ -158,9 +169,17 @@ public class Game {
 
     public List<UUID> getGoldTeam() {return GOLD_TEAM;}
 
-    public double getMaxBound() {return MAX_BOUND;}
+    public int getFloorY() {return FLOOR_Y;}
 
-    public double getMinBound() {return MIN_BOUND;}
+    public int getMinX() {return MIN_X;}
+
+    public int getMaxX() {return MAX_X;}
+
+    public int getMinZ() {return MIN_Z;}
+
+    public int getMaxZ() {return MAX_Z;}
+
+    public double getMoveStep() {return MOVE_STEP;}
 
     public World getArenaWorld() {return arenaWorld;}
 
