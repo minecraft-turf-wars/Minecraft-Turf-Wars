@@ -81,8 +81,14 @@ public class TurfWarsCommand implements CommandExecutor {
     }
 
     private void handleEndCommand(Player player, Game game) {
-        player.sendMessage(ChatColor.YELLOW + "Ending game: " + game.getName());
-        gameManager.endGame(game.getName());
+        String gameName = game.getName();
+        if (game == null){
+            player.sendMessage(ChatColor.RED + gameName + "Game not found.");
+            return;
+        }
+
+        player.sendMessage(ChatColor.YELLOW + "Ending game: " + gameName);
+        gameManager.endGame(gameName);
     }
 
     private void handleStartCommand(Player player, Game game){
