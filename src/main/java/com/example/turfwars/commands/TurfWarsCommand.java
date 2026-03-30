@@ -88,7 +88,7 @@ public class TurfWarsCommand implements CommandExecutor {
         }
 
         player.sendMessage(ChatColor.YELLOW + "Ending game: " + gameName);
-        gameManager.endGame(gameName);
+        gameManager.endGame(gameName, "§cGAME FORCE-ENDED");
     }
 
     private void handleStartCommand(Player player, Game game){

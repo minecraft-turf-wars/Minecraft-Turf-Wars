@@ -48,7 +48,7 @@ public class TurfWars extends JavaPlugin {
         if (gameManager != null) {
             // Create a copy of the list of games to avoid ConcurrentModificationException
             for (Game game : new java.util.ArrayList<>(gameManager.getGames())) {
-                gameManager.endGame(game.getName());
+                gameManager.endGame(game.getName(), "§cGAME FORCE-ENDED");
             }
         }
         getLogger().info("TurfWars has been disabled!");

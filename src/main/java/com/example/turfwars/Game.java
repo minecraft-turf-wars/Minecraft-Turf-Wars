@@ -93,8 +93,11 @@ public class Game {
 
     // Check to see if one team has controlled the entire arena (win condition)
     private void checkWinCondition(){
-        if (divideLine >= MAX_Z || divideLine <= MIN_Z){
-            endGame();
+        if (divideLine >= MAX_Z ){
+            endGame("§8BLACK TEAM §fWINS!");
+        }
+        else if (divideLine <= MIN_Z){
+            endGame("§6GOLD TEAM §fWINS!");
         }
     }
 
@@ -145,7 +148,7 @@ public class Game {
     }
 
     // Ends the current game and restarts the game so it can be joined again
-    public void endGame() {
+    public void endGame(String message) {
         if (this.state == GameState.ENDED){
             return;
         }
@@ -155,6 +158,7 @@ public class Game {
         for (UUID uuid : players){
             Player p = Bukkit.getPlayer(uuid);
             if (p != null){
+                p.sendTitle(message,"§7The game has ended.", 10, 70, 20);
                 InventoryManager.clearInventory(p);
             }
         }

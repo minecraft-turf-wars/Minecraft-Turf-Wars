@@ -24,10 +24,10 @@ public class GameManager {
         games.put(name, game);
     }
 
-    public void endGame(String name) {
+    public void endGame(String name, String message) {
         Game game = games.get(name);
         if (game != null) {
-            game.endGame();
+            game.endGame(message);
         }
     }
 
