@@ -11,7 +11,7 @@ body {
     min-width: 700px;
     max-width: 1024px;
     margin: 0 auto;
-    background-color: #55aa55; /* The green "border" color */
+    background-color: #55aa55; 
     box-shadow: 3px 3px 3px #666666;
 }
 
@@ -53,7 +53,7 @@ nav a:hover { color: #FFFFFF; }
 
 main { 
     background-color: #FFFFFF;
-    margin-left: 185px; /* Aligns perfectly with the nav width + padding */
+    margin-left: 185px; 
     padding: 20px;
     min-height: 400px;
 }
@@ -78,6 +78,7 @@ footer {
     clear: both; 
 }
 
+
 header, nav, main, footer { 
     display: block; 
 }
@@ -90,7 +91,7 @@ header, nav, main, footer {
 
 .team-member h3 {
     margin-top: 0;
-    color: #231F20; /* Matches your header color */
+    color: #231F20; 
 }
 
 .team-member p {
