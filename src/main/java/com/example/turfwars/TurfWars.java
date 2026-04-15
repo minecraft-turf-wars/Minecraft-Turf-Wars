@@ -5,7 +5,6 @@ import java.io.File;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.example.turfwars.commands.TurfWarsCommand;
-import com.example.turfwars.events.PlayerJoin;
 
 public class TurfWars extends JavaPlugin {
 
@@ -13,7 +12,6 @@ public class TurfWars extends JavaPlugin {
     private ArenaManager arenaManager;
     private LobbyManager lobbyManager;
     private GameManager gameManager;
-    private TeamManager teamManager;
 
     @Override
     public void onEnable() {
@@ -27,13 +25,11 @@ public class TurfWars extends JavaPlugin {
         // Initialize the Managers
         this.arenaManager = new ArenaManager();
         this.lobbyManager = new LobbyManager();
-        this.teamManager = new TeamManager(this);
         this.gameManager = new GameManager(this);
 
         this.gameManager.setupGames();
 
         // Register event listeners
-        getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
         getServer().getPluginManager().registerEvents(new GameListener(this.gameManager), this);
 
         // Register commands
