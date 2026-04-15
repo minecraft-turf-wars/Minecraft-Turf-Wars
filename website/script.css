@@ -1,0 +1,98 @@
+body { 
+    background-color: #FFC425;
+    background-image: url(background.jpg);
+    color: #000000;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+}
+
+#wrapper { 
+    width: 80%;
+    min-width: 700px;
+    max-width: 1024px;
+    margin: 0 auto;
+    background-color: #55aa55; /* The green "border" color */
+    box-shadow: 3px 3px 3px #666666;
+}
+
+header { 
+    background-color: #231F20;
+    color: #ffffff;
+    padding-bottom: 10px;
+}
+
+h1 { 
+    line-height: 200%;
+    text-align: center;
+    margin: 0;
+    background-color: #231F20;
+    color: #ffffff;
+}
+
+nav { 
+    font-weight: bold;
+    float: left;
+    width: 160px;
+    padding: 20px 0 0 20px;
+}
+
+nav ul { 
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav li {
+    margin-bottom: 15px;
+}
+
+nav a { text-decoration: none; }
+nav a:link { color: #000033; }
+nav a:visited { color: #344873; }
+nav a:hover { color: #FFFFFF; }
+
+main { 
+    background-color: #FFFFFF;
+    margin-left: 185px; /* Aligns perfectly with the nav width + padding */
+    padding: 20px;
+    min-height: 400px;
+}
+
+main img { 
+    float: left;
+    padding-right: 20px;
+    padding-bottom: 20px;
+}
+
+footer { 
+    font-size: 0.70em;
+    text-align: center;
+    font-style: italic;
+    padding: 20px;
+    margin-left: 185px;
+    background-color: #FFFFFF;
+    border-top: 1px solid #cccccc;
+}
+
+.clear { 
+    clear: both; 
+}
+
+header, nav, main, footer { 
+    display: block; 
+}
+
+.team-member {
+    margin-bottom: 30px;
+    border-bottom: 1px dashed #cccccc;
+    padding-bottom: 10px;
+}
+
+.team-member h3 {
+    margin-top: 0;
+    color: #231F20; /* Matches your header color */
+}
+
+.team-member p {
+    font-style: italic;
+}
