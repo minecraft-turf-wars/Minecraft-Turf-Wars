@@ -8,4 +8,8 @@ commands:
     description: Main command for the TurfWars plugin.
     usage: /<command> <list|join> [game]
     aliases: [tw]
+  permissions:
+    turfwars.admin:
+      description: Allows the user to force start/end TurfWars games
+      default: op
 

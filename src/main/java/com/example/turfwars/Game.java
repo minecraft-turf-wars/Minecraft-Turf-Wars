@@ -1,28 +1,29 @@
 package com.example.turfwars;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.GameMode;
+
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
+import javax.xml.stream.events.StartDocument;
 
 public class Game {
 
     private final String name;
     private GameState state;
     private final List<UUID> players;
-    private final int maxPlayers = 16; // Example value
+    private final int MIN_PLAYERS = 4;
+    private final int MAX_PLAYERS = 16;
+    private final Set<UUID> startVotes = new HashSet<>();
+    private int countdownTaskID = -1;
 
     private World arenaWorld;
     private final String worldName;
@@ -47,7 +48,6 @@ public class Game {
         this.state = GameState.WAITING;
         this.players = new ArrayList<>();
     }
-
 
     // Start game mechanics
     public void startMechanics() {
@@ -153,6 +153,7 @@ public class Game {
             return;
         }
         this.state = GameState.ENDED;
+        this.startVotes.clear();
 
         // Clears inventory at end of game
         for (UUID uuid : players){
@@ -180,13 +181,85 @@ public class Game {
         }
 
         LobbyManager.getInstance().sendToLobby(player);
+
+        broadcast("§a" + player.getName() + " joined the game! (" + players.size() + "/" + MAX_PLAYERS + ")");
+
+        if(players.size() == MAX_PLAYERS && state == GameState.WAITING){
+            startCountdown();
+        } else if(players.size() == MIN_PLAYERS && state == GameState.WAITING){
+            broadcast("§eMinimum players reached! Type §b/turfwars start §eto vote to start early.");
+        }
     }
 
     public void removePlayer(Player player) {
         players.remove(player.getUniqueId());
+        startVotes.remove(player.getUniqueId());
+
+        broadcast("§c" + player.getName() + " left the game. (" + players.size() + "/" + MAX_PLAYERS + ")");
+
+        if(state == GameState.STARTING && players.size() < MIN_PLAYERS) {
+            cancelCountdown();
+            broadcast("§cNot enough players to start. Countdown cancelled.");
+        }
+    }
+
+    public void addStartVote(Player player){
+        if(state != GameState.WAITING){
+            player.sendMessage("§cThe game is already starting or running!");
+            return;
+        }
+        if(players.size() < MIN_PLAYERS){
+            player.sendMessage("§cCannot start yet. Need at least " + MIN_PLAYERS + " players.");
+            return;
+        }
+        if(startVotes.contains(player.getUniqueId())){
+            player.sendMessage("§cYou have already voted to start!");
+            return;
+        }
+
+        startVotes.add(player.getUniqueId());
+        int requiredVotes = getRequiredVotes();
+
+        broadcast("§a" + player.getName() + " voted to start! (" + startVotes.size() + "/" + requiredVotes + ")");
+        if(startVotes.size() >= requiredVotes){
+            startCountdown();
+        }
+    }
+
+    public void startCountdown(){
+        if(state != GameState.WAITING){return;}
+        this.state = GameState.STARTING;
+
+        broadcast("§6Game is starting in 10 seconds!");
+
+        countdownTaskID = Bukkit.getScheduler().scheduleSyncDelayedTask(TurfWars.getInstance(), () ->{
+            if(state == GameState.STARTING){
+                startGame();    
+            }
+        }, 200L);
+    }
+
+    public void cancelCountdown(){
+        if(countdownTaskID != -1){
+            Bukkit.getScheduler().cancelTask(countdownTaskID);
+        }
+        this.state = GameState.WAITING;
+        this.startVotes.clear();
+    }
+
+    // Helper method for sending messages to all players in the game
+    public void broadcast(String message){
+        for(UUID uuid : players){
+            Player p = Bukkit.getPlayer(uuid);
+            if(p != null){
+                p.sendMessage(message);
+            }
+        }
     }
 
     // Getters
+    private int getRequiredVotes(){return (players.size() / 2) + 1;}
+
     public double getDivideLine() {return divideLine;}
 
     public List<UUID> getBlackTeam() {return BLACK_TEAM;}
@@ -215,5 +288,5 @@ public class Game {
 
     public List<UUID> getPlayers() {return players;}
 
-    public int getMaxPlayers() {return maxPlayers;}
+    public int getMaxPlayers() {return MAX_PLAYERS;}
 }

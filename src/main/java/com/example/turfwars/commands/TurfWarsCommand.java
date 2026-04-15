@@ -43,11 +43,24 @@ public class TurfWarsCommand implements CommandExecutor {
             case "start":
                 handleStartCommand(player, game);
                 break;
-            case "end":
-                handleEndCommand(player, game);
+            case "force_start":
+                if(player.hasPermission("turfwars.admin")){
+                    handleForceStartCommand(player, game);
+                } else{
+                    player.sendMessage(ChatColor.RED + "You do not have permission to force start a game.");
+                }
                 break;
+            case "force_end":
+                if(player.hasPermission("turfwars.admin")){
+                    handleForceEndCommand(player, game);
+                } else{
+                    player.sendMessage(ChatColor.RED + "You do not have permission to force start a game.");
+                break;
+                }
             default:
-                player.sendMessage(ChatColor.RED + "Unknown subcommand. Usage: /turfwars <join|start|end>");
+                if(player.hasPermission("turfwars.admin")){
+                    player.sendMessage(ChatColor.RED + "Unknown subcommand. Usage: /turfwars <join|start|force_start|force_end>");
+                } else{player.sendMessage(ChatColor.RED + "Unknown subcommand. Usage: /turfwars <join|start>");}
                 break;
         }
 
@@ -80,7 +93,7 @@ public class TurfWarsCommand implements CommandExecutor {
         }
     }
 
-    private void handleEndCommand(Player player, Game game) {
+    private void handleForceEndCommand(Player player, Game game) {
         String gameName = game.getName();
         if (game == null){
             player.sendMessage(ChatColor.RED + gameName + "Game not found.");
@@ -92,16 +105,27 @@ public class TurfWarsCommand implements CommandExecutor {
     }
 
     private void handleStartCommand(Player player, Game game){
-        if (game.getState() != GameState.WAITING){
-            player.sendMessage(ChatColor.RED + "Game is already starting or running.");
-            return;
-        }
-        if (game.getPlayers().size() < 1){
-            player.sendMessage(ChatColor.RED + "You need at least one player to start the game.");
+        if(game.getPlayers().contains(player.getUniqueId())){
+            game.addStartVote(player);
             return;
         }
 
-        player.sendMessage(ChatColor.GREEN + "Forcing start for: " + game.getName());
-        game.startGame();
+    }
+
+    private void handleForceStartCommand(Player player, Game game){
+        if(game == null){
+            player.sendMessage(ChatColor.RED + "That game could not be found.");
+            return;
+        }
+        if(game.getState() != GameState.WAITING){
+            player.sendMessage(ChatColor.RED + "Game is already starting or running.");
+            return;
+        }
+        if(game.getPlayers().size() < 1){
+            player.sendMessage(ChatColor.RED + "You need at least one player to force start the game.");
+            return;
+        }
+        player.sendMessage(ChatColor.GREEN + "Forcing countdown start for: " + game.getName());
+        game.startCountdown();
     }
 }
