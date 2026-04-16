@@ -83,7 +83,26 @@ header, nav, main, footer {
     display: block; 
 }
 
+h2{
+    font-family: "Press Start 2P", "consolas", "sans-serif";
+    font-style: italic;
+    font-size: 24px;
+    image-rendering: pixelated;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h3{
+    font-family: "Press Start 2P", "consolas", "sans-serif";
+    font-size: 20px;
+    image-rendering: pixelated;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .team-member {
+    font-family: "Press Start 2P", "consolas", "sans-serif";
+    font-size: 14px;
     margin-bottom: 30px;
     border-bottom: 1px dashed #cccccc;
     padding-bottom: 10px;
@@ -96,4 +115,15 @@ header, nav, main, footer {
 
 .team-member p {
     font-style: italic;
+}
+
+.game-title{
+    font-family: "Press Start 2P", cursive;
+    font-size: 32px;
+    color: #FFC425;
+    text-shadow: 3px 3px 0px #000000;
+    display: inline-block;
+    padding-top: 10px;
+    -webkit-font-smoothing: none;
+    image-rendering: pixelated;
 }
