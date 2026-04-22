@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.xml.stream.events.StartDocument;
-
 public class Game {
 
     private final String name;
