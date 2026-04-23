@@ -62,7 +62,7 @@ nav li {
 nav a { text-decoration: none; color: inherit; font-size: 14px; }
 nav a:link { color: #000033; }
 nav a:visited { color: #344873; }
-nav a:hover { color: #FFFFFF; }
+nav a:hover { color: #FFC425; }
 
 main { 
     background-color: #FFFFFF;
