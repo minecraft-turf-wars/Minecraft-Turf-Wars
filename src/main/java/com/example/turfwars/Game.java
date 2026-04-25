@@ -56,7 +56,8 @@ public class Game {
             for (UUID uuid : players) {
                 Player p = Bukkit.getPlayer(uuid);
                 if (p != null) {
-                   InventoryManager.giveReplenishItems(p);
+                    Material teamBlock = BLACK_TEAM.contains(uuid) ? Material.BLACK_WOOL : Material.YELLOW_WOOL;
+                    InventoryManager.giveReplenishItems(p, teamBlock);
                 }
             }
         }, 0L, 100L);
@@ -120,11 +121,13 @@ public class Game {
             UUID uuid = players.get(i);
             Player p = Bukkit.getPlayer(uuid);
 
+            Material teamBlock = (i % 2 == 0) ? Material.BLACK_WOOL : Material.YELLOW_WOOL;
+
             if (p != null){
                 p.setGameMode(org.bukkit.GameMode.SURVIVAL);
                 InventoryManager.clearInventory(p);
                 InventoryManager.resetHealtAndHunger(p);
-                InventoryManager.giveCombatKit(p);
+                InventoryManager.giveCombatKit(p, teamBlock);
             }
             
             if (i % 2 == 0) {
@@ -196,6 +199,15 @@ public class Game {
         startVotes.remove(player.getUniqueId());
 
         broadcast("§c" + player.getName() + " left the game. (" + players.size() + "/" + MAX_PLAYERS + ")");
+
+        if (player.isOnline()) {
+            InventoryManager.clearInventory(player);
+            InventoryManager.resetHealtAndHunger(player);
+            player.setGameMode(org.bukkit.GameMode.SURVIVAL);
+            
+            World mainWorld = Bukkit.getWorlds().get(0); 
+            player.teleport(mainWorld.getSpawnLocation());
+        }
 
         if(state == GameState.STARTING && players.size() < MIN_PLAYERS) {
             cancelCountdown();

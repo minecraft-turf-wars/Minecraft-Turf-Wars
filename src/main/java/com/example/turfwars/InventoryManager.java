@@ -6,16 +6,16 @@ import org.bukkit.inventory.ItemStack;
 
 public class InventoryManager {
     
-    public static void giveCombatKit(Player player){
+    public static void giveCombatKit(Player player, Material teamBlock){
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
         player.getInventory().addItem(new ItemStack(Material.BOW, 1));
         player.getInventory().addItem(new ItemStack(Material.ARROW, 7));
-        player.getInventory().addItem(new ItemStack(Material.GRAY_CONCRETE, 7));
+        player.getInventory().addItem(new ItemStack(teamBlock, 7));
     }
 
-    public static void giveReplenishItems(Player player){
-        player.getInventory().addItem(new ItemStack(Material.GRAY_CONCRETE, 1));
+    public static void giveReplenishItems(Player player, Material teamBlock){
+        player.getInventory().addItem(new ItemStack(teamBlock, 1));
         player.getInventory().addItem(new ItemStack(Material.ARROW, 1));
     }
 

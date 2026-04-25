@@ -1,25 +1,28 @@
 package com.example.turfwars;
 
 import org.bukkit.event.Listener;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
-
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import java.util.HashMap;
+import java.util.Map;
+import org.bukkit.event.entity.PlayerDeathEvent;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 
 public class GameListener implements Listener{
     private final GameManager GAME_MANAGER;
+    private final Map<UUID, Location> deathLocations = new HashMap<>();
 
     public GameListener(GameManager GAME_MANAGER){
         this.GAME_MANAGER = GAME_MANAGER;
@@ -77,7 +80,8 @@ public class GameListener implements Listener{
         
         player.setGameMode(GameMode.SURVIVAL);
         InventoryManager.clearInventory(player);
-        InventoryManager.giveCombatKit(player);
+        Material teamBlock = game.getBlackTeam().contains(player.getUniqueId()) ? Material.BLACK_WOOL : Material.YELLOW_WOOL;
+        InventoryManager.giveCombatKit(player, teamBlock);
 
         World world = game.getArenaWorld();
         Location respawnLoc;
@@ -87,12 +91,17 @@ public class GameListener implements Listener{
         } else{
             respawnLoc = new Location (world, Game.GOLD_X, Game.GOLD_Y, Game.GOLD_Z, 180f, 0f);
         }
-        player.teleport(respawnLoc);
+
+        Location deathLoc = deathLocations.getOrDefault(player.getUniqueId(), respawnLoc);
+
+        player.teleport(deathLoc);
         player.setGameMode(GameMode.SPECTATOR);
         Bukkit.getScheduler().runTaskLater(TurfWars.getInstance(), () -> {
             player.setGameMode(GameMode.SURVIVAL);
             player.teleport(respawnLoc);
             player.sendMessage("§aYou have respawned!");
+
+            deathLocations.remove(player.getUniqueId());
         }, 100L); // 5-second respawn timer
 
     }
@@ -171,6 +180,58 @@ public class GameListener implements Listener{
         if (victimIsGold == attackerIsGold){
             event.setCancelled(true);
             attacker.sendMessage("§cYou cannot hurt your teammates!");
+        }
+    }
+
+    // Destorys player placed blocks with arrow hits
+    // Ensures all arrows that hit in the arena are removed from the ground
+    @EventHandler
+    public void onArrowHitGround(ProjectileHitEvent event){
+        if(!(event.getEntity() instanceof Arrow arrow)){
+            return;
+        }
+        if(!(arrow.getShooter() instanceof Player shooter)){
+            return;
+        }
+        Game game = findGame(shooter);
+        if(game == null || game.getState() != GameState.RUNNING){
+            return;
+        }
+        if (event.getHitBlock() != null) {
+            org.bukkit.block.Block hitBlock = event.getHitBlock();
+            Material blockType = hitBlock.getType();
+
+        Bukkit.getScheduler().runTaskLater(TurfWars.getInstance(), () -> {
+                if (blockType == Material.BLACK_WOOL || blockType == Material.YELLOW_WOOL) {
+                    hitBlock.setType(Material.AIR);
+                }
+                
+                if (!arrow.isDead()) {
+                    arrow.remove();
+                }
+            }, 1L);
+        }
+    }
+
+    // Removes player from game if they d/c from the server
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event){
+        Player player = event.getPlayer();
+        Game game = findGame(player);
+
+        if(game != null){
+            game.removePlayer(player);
+        }
+    }
+
+    // Captures player death loc for respawning purposes
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event){
+        Player player = event.getPlayer();
+        Game game = findGame(player);
+
+        if(game!= null && game.getState() == GameState.RUNNING){
+            deathLocations.put(player.getUniqueId(), player.getLocation());
         }
     }
 
