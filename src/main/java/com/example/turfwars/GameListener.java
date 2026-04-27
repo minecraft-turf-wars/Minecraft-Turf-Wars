@@ -10,25 +10,32 @@ import org.bukkit.World;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 
+import io.papermc.paper.event.block.BlockBreakBlockEvent;
+
 public class GameListener implements Listener{
     private final GameManager GAME_MANAGER;
     private final Map<UUID, Location> deathLocations = new HashMap<>();
+    private final Set<UUID> spawnProtectedPlayers = new HashSet<>();
 
     public GameListener(GameManager GAME_MANAGER){
         this.GAME_MANAGER = GAME_MANAGER;
     }
 
-    // Handles one-shot logic for arrow hits
+    // Handles one-shot logic for arrow hits (and spawn protection negating damage)
     @EventHandler
     public void onArrowHit(EntityDamageByEntityEvent event){
         if (!(event.getEntity() instanceof Player victim)) return;
@@ -37,6 +44,14 @@ public class GameListener implements Listener{
 
         Game game = findGame(victim);
         if(game == null || game.getState() != GameState.RUNNING) return;
+
+        if(spawnProtectedPlayers.contains(victim.getUniqueId())){
+            event.setCancelled(true);
+            killer.sendMessage("§c" + victim.getName() + " currently has spawn protection!");
+            killer.playSound(killer.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            arrow.remove();
+            return;
+        }
 
         event.setDamage(1000.0);
         game.handleKill(killer);
@@ -102,6 +117,18 @@ public class GameListener implements Listener{
             player.sendMessage("§aYou have respawned!");
 
             deathLocations.remove(player.getUniqueId());
+
+            spawnProtectedPlayers.add(player.getUniqueId());
+            player.sendMessage("§bYou have spawn protection for 3 seconds!");
+
+            Bukkit.getScheduler().runTaskLater(TurfWars.getInstance(), ()-> {
+                if(spawnProtectedPlayers.remove(player.getUniqueId())){
+                    if(player.isOnline()){
+                        player.sendMessage("§cYour spawn protection has worn off!");
+                    }
+                }
+            }, 60L); // 3-second respawn invincibility
+
         }, 100L); // 5-second respawn timer
 
     }
@@ -125,20 +152,30 @@ public class GameListener implements Listener{
             return;
         }
 
+        if (event.getFrom().getBlockX() == event.getTo().getBlockX() &&
+            event.getFrom().getBlockY() == event.getTo().getBlockY() &&
+            event.getFrom().getBlockZ() == event.getTo().getBlockZ()) {
+            return;
+        }
+
         double newZ = event.getTo().getZ();
         double divideLine = game.getDivideLine();
 
         // Check for black team movement
         if (game.getBlackTeam().contains(player.getUniqueId())){
             if (newZ > divideLine){
-                event.setCancelled(true);
+                Location pushBack = event.getFrom().clone();
+                pushBack.setZ(pushBack.getZ() - 1.0);
+                event.setTo(pushBack);
                 player.sendMessage("§cYou cannot enter gold team's territory!");
             }
         }
         // Check for gold team movement
         else if (game.getGoldTeam().contains(player.getUniqueId())){
             if (newZ < divideLine){
-                event.setCancelled(true);
+                Location pushBack = event.getFrom().clone();
+                pushBack.setZ(pushBack.getZ() + 1.0);
+                event.setTo(pushBack);
                 player.sendMessage("§cYou cannot enter black team's territory!");
             }
         }
@@ -219,6 +256,8 @@ public class GameListener implements Listener{
         Player player = event.getPlayer();
         Game game = findGame(player);
 
+        spawnProtectedPlayers.remove(player.getUniqueId());
+
         if(game != null){
             game.removePlayer(player);
         }
@@ -234,6 +273,22 @@ public class GameListener implements Listener{
             deathLocations.put(player.getUniqueId(), player.getLocation());
         }
     }
+
+    // Prevents block breaking in the lobby and the game arena
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event){
+        Player player = event.getPlayer();
+
+        if(player.getWorld().getName().equalsIgnoreCase("lobby")){
+            event.setCancelled(true);
+        }
+
+        Game game = findGame(player);
+        if(game!=null){
+            event.setCancelled(true);
+        }
+    }
+
 
     private Game findGame(Player player){
         return GAME_MANAGER.getGames().stream()

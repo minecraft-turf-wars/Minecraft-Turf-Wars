@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.xml.stream.events.StartDocument;
-
 public class Game {
 
     private final String name;
@@ -34,7 +32,6 @@ public class Game {
     private final int MAX_X = -1;
     private final int MIN_Z = 7;
     private final int MAX_Z = 70;
-    private final double MOVE_STEP = 1.0;
 
     private final List<UUID> BLACK_TEAM = new ArrayList<>();
     private final List<UUID> GOLD_TEAM = new ArrayList<>();
@@ -65,10 +62,24 @@ public class Game {
  
     // Kill mechanics (push or pull the divide line)
     public void handleKill(Player killer){
-        if (BLACK_TEAM.contains(killer.getUniqueId())){
-            divideLine += MOVE_STEP;
+        
+        // Hit marker sound
+        killer.playSound(killer.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 2.0f);
+        
+        // Dynamic moveStep counter (9+ players = 1 block, 5-8 players = 2 blocks, 4 or less players = 3 blocks)
+        double moveStep;
+        if(players.size() > 8){
+            moveStep = 1.0;
+        } else if(players.size() <= 8 && players.size() > 5){
+            moveStep = 2.0;
         } else{
-            divideLine -= MOVE_STEP;
+            moveStep = 3.0;
+        }
+
+        if (BLACK_TEAM.contains(killer.getUniqueId())){
+            divideLine += moveStep;
+        } else{
+            divideLine -= moveStep;
         }
 
         updateTerritoryBlocks();
@@ -79,14 +90,36 @@ public class Game {
     // Update the blocks in the arena depending on current divide line
     public void updateTerritoryBlocks(){
         if (arenaWorld == null) return;
+
+        int MAX_Y = FLOOR_Y + 20;
         for (int x = MIN_X; x <= MAX_X; x++) {
             for (int z = MIN_Z; z <= MAX_Z; z++) {
-                Location loc = new Location(arenaWorld, x, FLOOR_Y, z);
+
+                boolean isBlackTerritory = (z < divideLine);
+                Location floorLoc = new Location(arenaWorld, x, FLOOR_Y, z);
                 
-                if (z < divideLine) {
-                    loc.getBlock().setType(Material.BLACK_CONCRETE);
+                if (isBlackTerritory) {
+                    floorLoc.getBlock().setType(Material.BLACK_CONCRETE);
                 } else {
-                    loc.getBlock().setType(Material.YELLOW_CONCRETE);
+                    floorLoc.getBlock().setType(Material.YELLOW_CONCRETE);
+                }
+
+                // Destroys miscolored blocks after the update of the divide line
+                for(int y = FLOOR_Y + 1; y <= MAX_Y; y++){
+                    org.bukkit.block.Block block = arenaWorld.getBlockAt(x, y, z);
+                    Material type = block.getType();
+
+                    if(type==Material.AIR) continue;
+
+                    if(isBlackTerritory){
+                        if(type == Material.YELLOW_WOOL){
+                            block.setType(Material.AIR);
+                        } 
+                    } else{
+                        if(type == Material.BLACK_WOOL){
+                            block.setType(Material.AIR);
+                        }
+                    }
                 }
             }
         }
@@ -287,8 +320,6 @@ public class Game {
     public int getMinZ() {return MIN_Z;}
 
     public int getMaxZ() {return MAX_Z;}
-
-    public double getMoveStep() {return MOVE_STEP;}
 
     public World getArenaWorld() {return arenaWorld;}
 

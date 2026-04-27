@@ -27,44 +27,74 @@ public class TurfWarsCommand implements CommandExecutor {
 
         Player player = (Player) sender;
 
-        if (args.length < 2) {
-            player.sendMessage(ChatColor.RED + "Usage: /turfwars <list|join|end>");
+        if (args.length == 0) {
+            player.sendMessage(ChatColor.RED + "Usage: /turfwars <join|start|list|info>");
             return true;
         }
 
         String action = args[0].toLowerCase();
-        String gameName = args[1];
-        Game game = gameManager.getGame(gameName);
+        Game game = null;
+
+        if (args.length >= 2) {
+            game = gameManager.getGame(args[1]);
+        }
 
         switch (action) {
+            case "info":
+            case "credits":
+                handleInfoCommand(player);
+                break;
+            case "list":
+                handleListCommand(player);
+                break;
             case "join":
+                if (args.length < 2) {
+                    player.sendMessage(ChatColor.RED + "Usage: /turfwars join <game_name>");
+                    return true;
+                }
                 handleJoinCommand(player, args);
                 break;
             case "start":
+                if (game == null) {
+                    player.sendMessage(ChatColor.RED + "Game not found.");
+                    return true;
+                }
                 handleStartCommand(player, game);
                 break;
             case "force_start":
-                if(player.hasPermission("turfwars.admin")){
+                if (player.hasPermission("turfwars.admin")) {
                     handleForceStartCommand(player, game);
-                } else{
+                } else {
                     player.sendMessage(ChatColor.RED + "You do not have permission to force start a game.");
                 }
                 break;
             case "force_end":
-                if(player.hasPermission("turfwars.admin")){
+                if (player.hasPermission("turfwars.admin")) {
                     handleForceEndCommand(player, game);
-                } else{
-                    player.sendMessage(ChatColor.RED + "You do not have permission to force start a game.");
-                break;
+                } else {
+                    player.sendMessage(ChatColor.RED + "You do not have permission to force end a game.");
                 }
+                break;
             default:
-                if(player.hasPermission("turfwars.admin")){
-                    player.sendMessage(ChatColor.RED + "Unknown subcommand. Usage: /turfwars <join|start|force_start|force_end>");
-                } else{player.sendMessage(ChatColor.RED + "Unknown subcommand. Usage: /turfwars <join|start>");}
+                if (player.hasPermission("turfwars.admin")) {
+                    player.sendMessage(ChatColor.RED + "Unknown subcommand. Usage: /turfwars <join|start|force_start|force_end|list|info>");
+                } else {
+                    player.sendMessage(ChatColor.RED + "Unknown subcommand. Usage: /turfwars <join|start|list|info>");
+                }
                 break;
         }
 
         return true;
+    }
+
+    private void handleInfoCommand(Player player){
+        player.sendMessage("§8§m----------------------------------------");
+        player.sendMessage("§b§lTURF WARS §7- Minigame Plugin");
+        player.sendMessage(" ");
+        player.sendMessage("§fDeveloped by: §aMatthew Pfleger §f& §aChase Holt §f& §aAndrew Burgos");
+        player.sendMessage("§aJohn McDowell §f& §aHezekiah Holloman");
+        player.sendMessage("§fSource Code: §ehttps://github.com/minecraft-turf-wars/minecraft-turf-wars");
+        player.sendMessage("§8§m----------------------------------------");
     }
 
     private void handleListCommand(Player player) {
