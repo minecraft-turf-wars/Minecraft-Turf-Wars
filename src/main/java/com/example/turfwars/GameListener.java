@@ -24,8 +24,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 
-import io.papermc.paper.event.block.BlockBreakBlockEvent;
-
+// Class contains all of the listeners to handle in game actions by players/entities
 public class GameListener implements Listener{
     private final GameManager GAME_MANAGER;
     private final Map<UUID, Location> deathLocations = new HashMap<>();

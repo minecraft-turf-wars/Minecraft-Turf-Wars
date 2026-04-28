@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+// Class contains the core logic of the gamemode
 public class Game {
 
     private final String name;
@@ -32,109 +33,47 @@ public class Game {
     private final int MAX_X = -1;
     private final int MIN_Z = 7;
     private final int MAX_Z = 70;
+    public static final double BLACK_X = -21,  BLACK_Y = -59, BLACK_Z = 0;
+    public static final double GOLD_X = -21, GOLD_Y = -59, GOLD_Z = 77;
 
     private final List<UUID> BLACK_TEAM = new ArrayList<>();
     private final List<UUID> GOLD_TEAM = new ArrayList<>();
 
-    public static final double BLACK_X = -21,  BLACK_Y = -59, BLACK_Z = 0;
-    public static final double GOLD_X = -21, GOLD_Y = -59, GOLD_Z = 77;
+    private org.bukkit.scoreboard.Scoreboard scoreboard;
+    private org.bukkit.scoreboard.Objective objective;
 
     public Game(String name) {
         this.name = name;
         this.worldName = "turfwars_arena_" + name;
         this.state = GameState.WAITING;
         this.players = new ArrayList<>();
+        this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        this.objective = scoreboard.registerNewObjective("turfwars","dummy", "§b§lTURF WARS");
+        this.objective.setDisplaySlot(org.bukkit.scoreboard.DisplaySlot.SIDEBAR);
     }
 
-    // Start game mechanics
-    public void startMechanics() {
-        Bukkit.getScheduler().runTaskTimer(TurfWars.getInstance(), () -> {
-            if (state != GameState.RUNNING) return;
-            for (UUID uuid : players) {
-                Player p = Bukkit.getPlayer(uuid);
-                if (p != null) {
-                    Material teamBlock = BLACK_TEAM.contains(uuid) ? Material.BLACK_WOOL : Material.YELLOW_WOOL;
-                    InventoryManager.giveReplenishItems(p, teamBlock);
-                }
-            }
-        }, 0L, 100L);
+    // Update the scoreboard logic
+    public void updateScoreboard(){
+        if(scoreboard==null)return;
+
+        for(String entry : scoreboard.getEntries()){
+            scoreboard.resetScores(entry);
+        }
+
+        double totalLength = MAX_Z - MIN_Z;
+        double blackControl = divideLine - MIN_Z;
+
+        int blackPercent = (int) Math.max(0, Math.min(100, (blackControl / totalLength) * 100));
+        int goldPercent = 100 - blackPercent;
+
+        objective.getScore(" ").setScore(6);
+        objective.getScore("§fMap Control:").setScore(5);
+        objective.getScore("§8Black: §7" + blackPercent + "%").setScore(4);
+        objective.getScore("§6Gold: §e" + goldPercent + "%").setScore(3);
+        objective.getScore("  ").setScore(2);
+        objective.getScore("§fPlayers: §a" + players.size() + "/" + MAX_PLAYERS).setScore(1);
+        objective.getScore(" ").setScore(0);
     }
- 
-    // Kill mechanics (push or pull the divide line)
-    public void handleKill(Player killer){
-        
-        // Hit marker sound
-        killer.playSound(killer.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 2.0f);
-        
-        // Dynamic moveStep counter (9+ players = 1 block, 5-8 players = 2 blocks, 4 or less players = 3 blocks)
-        double moveStep;
-        if(players.size() > 8){
-            moveStep = 1.0;
-        } else if(players.size() <= 8 && players.size() > 5){
-            moveStep = 2.0;
-        } else{
-            moveStep = 3.0;
-        }
-
-        if (BLACK_TEAM.contains(killer.getUniqueId())){
-            divideLine += moveStep;
-        } else{
-            divideLine -= moveStep;
-        }
-
-        updateTerritoryBlocks();
-
-        checkWinCondition();
-    }
-
-    // Update the blocks in the arena depending on current divide line
-    public void updateTerritoryBlocks(){
-        if (arenaWorld == null) return;
-
-        int MAX_Y = FLOOR_Y + 20;
-        for (int x = MIN_X; x <= MAX_X; x++) {
-            for (int z = MIN_Z; z <= MAX_Z; z++) {
-
-                boolean isBlackTerritory = (z < divideLine);
-                Location floorLoc = new Location(arenaWorld, x, FLOOR_Y, z);
-                
-                if (isBlackTerritory) {
-                    floorLoc.getBlock().setType(Material.BLACK_CONCRETE);
-                } else {
-                    floorLoc.getBlock().setType(Material.YELLOW_CONCRETE);
-                }
-
-                // Destroys miscolored blocks after the update of the divide line
-                for(int y = FLOOR_Y + 1; y <= MAX_Y; y++){
-                    org.bukkit.block.Block block = arenaWorld.getBlockAt(x, y, z);
-                    Material type = block.getType();
-
-                    if(type==Material.AIR) continue;
-
-                    if(isBlackTerritory){
-                        if(type == Material.YELLOW_WOOL){
-                            block.setType(Material.AIR);
-                        } 
-                    } else{
-                        if(type == Material.BLACK_WOOL){
-                            block.setType(Material.AIR);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Check to see if one team has controlled the entire arena (win condition)
-    private void checkWinCondition(){
-        if (divideLine >= MAX_Z ){
-            endGame("§8BLACK TEAM §fWINS!");
-        }
-        else if (divideLine <= MIN_Z){
-            endGame("§6GOLD TEAM §fWINS!");
-        }
-    }
-
 
     // Start game logic
     public void startGame() {
@@ -183,42 +122,110 @@ public class Game {
         updateTerritoryBlocks();
     }
 
-    // Ends the current game and restarts the game so it can be joined again
-    public void endGame(String message) {
-        if (this.state == GameState.ENDED){
-            return;
-        }
-        this.state = GameState.ENDED;
-        this.startVotes.clear();
-
-        // Clears inventory at end of game
-        for (UUID uuid : players){
-            Player p = Bukkit.getPlayer(uuid);
-            if (p != null){
-                p.sendTitle(message,"§7The game has ended.", 10, 70, 20);
-                InventoryManager.clearInventory(p);
+    // Start game mechanics (giving players there combat kit every 5 seconds)
+    public void startMechanics() {
+        Bukkit.getScheduler().runTaskTimer(TurfWars.getInstance(), () -> {
+            if (state != GameState.RUNNING) return;
+            for (UUID uuid : players) {
+                Player p = Bukkit.getPlayer(uuid);
+                if (p != null) {
+                    Material teamBlock = BLACK_TEAM.contains(uuid) ? Material.BLACK_WOOL : Material.YELLOW_WOOL;
+                    InventoryManager.giveReplenishItems(p, teamBlock);
+                }
             }
-        }
-        if (this.arenaWorld != null){
-            ArenaManager.getInstance().unloadArena(this);
-        }
-
-        this.players.clear();
-        // Schedule the restart to happen on the next tick to avoid 
-        // logic collisions during the world unloading process
-        Bukkit.getScheduler().runTask(TurfWars.getInstance(), () -> {
-            TurfWars.getInstance().getGameManager().restartGame(this.name);
-        });
+        }, 0L, 100L);
     }
 
+    // Kill mechanics (push or pull the divide line)
+    public void handleKill(Player killer){
+        
+        // Hit marker sound
+        killer.playSound(killer.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 2.0f);
+        
+        // Dynamic moveStep counter (9+ players = 1 block, 5-8 players = 2 blocks, 4 or less players = 3 blocks)
+        double moveStep;
+        if(players.size() > 8){
+            moveStep = 1.0;
+        } else if(players.size() <= 8 && players.size() > 5){
+            moveStep = 2.0;
+        } else{
+            moveStep = 3.0;
+        }
+
+        if (BLACK_TEAM.contains(killer.getUniqueId())){
+            divideLine += moveStep;
+        } else{
+            divideLine -= moveStep;
+        }
+
+        updateTerritoryBlocks(); // Push/pull blocks
+
+        updateScoreboard(); // Update current score
+
+        checkWinCondition(); // Check for win condition
+    }
+
+        // Update the blocks in the arena depending on current divide line
+    public void updateTerritoryBlocks(){
+        if (arenaWorld == null) return;
+
+        int MAX_Y = FLOOR_Y + 20;
+        for (int x = MIN_X; x <= MAX_X; x++) {
+            for (int z = MIN_Z; z <= MAX_Z; z++) {
+
+                boolean isBlackTerritory = (z < divideLine);
+                Location floorLoc = new Location(arenaWorld, x, FLOOR_Y, z);
+                
+                if (isBlackTerritory) {
+                    floorLoc.getBlock().setType(Material.BLACK_CONCRETE);
+                } else {
+                    floorLoc.getBlock().setType(Material.YELLOW_CONCRETE);
+                }
+
+                // Destroys miscolored blocks after the update of the divide line
+                for(int y = FLOOR_Y + 1; y <= MAX_Y; y++){
+                    org.bukkit.block.Block block = arenaWorld.getBlockAt(x, y, z);
+                    Material type = block.getType();
+
+                    if(type==Material.AIR) continue;
+
+                    if(isBlackTerritory){
+                        if(type == Material.YELLOW_WOOL){
+                            block.setType(Material.AIR);
+                        } 
+                    } else{
+                        if(type == Material.BLACK_WOOL){
+                            block.setType(Material.AIR);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Check to see if one team has controlled the entire arena (win condition)
+    private void checkWinCondition(){
+        if (divideLine >= MAX_Z ){
+            endGame("§8BLACK TEAM §fWINS!");
+        }
+        else if (divideLine <= MIN_Z){
+            endGame("§6GOLD TEAM §fWINS!");
+        }
+    }
+
+    // Add player logic
     public void addPlayer(Player player) {
         if (!players.contains(player.getUniqueId())) {
             players.add(player.getUniqueId());
         }
 
+        player.setScoreboard(this.scoreboard);
+
         LobbyManager.getInstance().sendToLobby(player);
 
         broadcast("§a" + player.getName() + " joined the game! (" + players.size() + "/" + MAX_PLAYERS + ")");
+
+        updateScoreboard();
 
         if(players.size() == MAX_PLAYERS && state == GameState.WAITING){
             startCountdown();
@@ -227,27 +234,7 @@ public class Game {
         }
     }
 
-    public void removePlayer(Player player) {
-        players.remove(player.getUniqueId());
-        startVotes.remove(player.getUniqueId());
-
-        broadcast("§c" + player.getName() + " left the game. (" + players.size() + "/" + MAX_PLAYERS + ")");
-
-        if (player.isOnline()) {
-            InventoryManager.clearInventory(player);
-            InventoryManager.resetHealtAndHunger(player);
-            player.setGameMode(org.bukkit.GameMode.SURVIVAL);
-            
-            World mainWorld = Bukkit.getWorlds().get(0); 
-            player.teleport(mainWorld.getSpawnLocation());
-        }
-
-        if(state == GameState.STARTING && players.size() < MIN_PLAYERS) {
-            cancelCountdown();
-            broadcast("§cNot enough players to start. Countdown cancelled.");
-        }
-    }
-
+    // Logic for the vote to start function of lobby area
     public void addStartVote(Player player){
         if(state != GameState.WAITING){
             player.sendMessage("§cThe game is already starting or running!");
@@ -271,6 +258,7 @@ public class Game {
         }
     }
 
+    // Starts countdown to begin the game
     public void startCountdown(){
         if(state != GameState.WAITING){return;}
         this.state = GameState.STARTING;
@@ -284,6 +272,7 @@ public class Game {
         }, 200L);
     }
 
+    // Cancels the countdown
     public void cancelCountdown(){
         if(countdownTaskID != -1){
             Bukkit.getScheduler().cancelTask(countdownTaskID);
@@ -300,6 +289,57 @@ public class Game {
                 p.sendMessage(message);
             }
         }
+    }
+
+    // Remove player logic
+    public void removePlayer(Player player) {
+        players.remove(player.getUniqueId());
+        startVotes.remove(player.getUniqueId());
+
+        broadcast("§c" + player.getName() + " left the game. (" + players.size() + "/" + MAX_PLAYERS + ")");
+
+        updateScoreboard();
+
+        if (player.isOnline()) {
+            player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            InventoryManager.clearInventory(player);
+            InventoryManager.resetHealtAndHunger(player);
+            player.setGameMode(org.bukkit.GameMode.SURVIVAL);
+            
+            World mainWorld = Bukkit.getWorlds().get(0); 
+            player.teleport(mainWorld.getSpawnLocation());
+        }
+
+        if(state == GameState.STARTING && players.size() < MIN_PLAYERS) {
+            cancelCountdown();
+            broadcast("§cNot enough players to start. Countdown cancelled.");
+        }
+    }
+
+    // Ends the current game and restarts the game so it can be joined again
+    public void endGame(String message) {
+        if (this.state == GameState.ENDED){
+            return;
+        }
+        this.state = GameState.ENDED;
+        this.startVotes.clear();
+
+        // Clears inventory at end of game
+        for (UUID uuid : players){
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null){
+                p.sendTitle(message,"§7The game has ended.", 10, 70, 20);
+                InventoryManager.clearInventory(p);
+            }
+        }
+        if (this.arenaWorld != null){
+            ArenaManager.getInstance().unloadArena(this);
+        }
+
+        this.players.clear();
+        Bukkit.getScheduler().runTask(TurfWars.getInstance(), () -> {
+            TurfWars.getInstance().getGameManager().restartGame(this.name);
+        });
     }
 
     // Getters
