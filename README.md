@@ -14,8 +14,8 @@ Kennesaw State University Esports needed a fresh and engaging Minecraft gamemode
 
 ## ✨ Features
 
-* **Team-Based Gameplay:** Players are grouped into opposing team (Gold Team and Black Team) to battle for arena dominance.
-* **Territory Control:** Dynamic mapping and claiming of "turf" within the playing field. Whenever one team controls the entire arena the game ends!
+* **Team-Based Gameplay:** Players are grouped into opposing teams (Gold Team and Black Team) to battle for arena dominance.
+* **Territory Control:** Dynamic mapping and claiming of "turf" within the playing field. Whenever one team controls the entire arena the game ends.
 * **Lobby System:** Includes a pre-game staging area (`/lobby`) for queuing players before the match begins.
 * **Custom Arena World:** Comes with a `template_world` that is the default arena for the minigame.
 * **Web Integration:** Includes a `website` directory containing HTML/CSS assets, used for displaying project information
@@ -31,8 +31,8 @@ Kennesaw State University Esports needed a fresh and engaging Minecraft gamemode
 ```text
 Minecraft-Turf-Wars/
 ├── src/main/          # Java source code and resources for the Minecraft plugin
-├── lobby/             # Configuration, world data, or schematics for the pre-game lobby
-├── template_world/    # The base map/arena used for the Turf Wars minigame
+├── lobby/             # The pre-game lobby world file
+├── template_world/    # The arena used for the Turf Wars minigame world file
 ├── website/           # Web files (HTML/CSS) for the projects's accompanying page
 ├── build.gradle       # Gradle build configuration and dependencies
 └── gradlew            # Gradle wrapper executable
