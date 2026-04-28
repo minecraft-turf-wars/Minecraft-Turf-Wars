@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'com.example.turfwars'
-version = '1.0-SNAPSHOT'
+version = '1.0'
 
 repositories {
     mavenCentral()
@@ -29,4 +29,8 @@ processResources {
     filesMatching('plugin.yml') {
         expand(project.properties)
     }
+}
+
+jar {
+    archiveFileName = 'TurfWars.jar'
 }

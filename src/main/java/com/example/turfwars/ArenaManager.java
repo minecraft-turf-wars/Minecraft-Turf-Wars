@@ -9,7 +9,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
-//for loading and unloading worlds, look at gamemanager class for game start and end logic
+
+// For loading and unloading arena worlds, look at Game class for game start and end logic
 public class ArenaManager {
 
     private static ArenaManager instance;

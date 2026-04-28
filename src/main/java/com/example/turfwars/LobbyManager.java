@@ -12,6 +12,7 @@ import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
 import org.bukkit.Location;
 
+// For loading and unloading lobby worlds, look at Game class for game start and end logic
 public class LobbyManager {
 
     private static LobbyManager instance;
@@ -132,9 +133,3 @@ public class LobbyManager {
 
     }
 }
-
-
-
-
-
-
