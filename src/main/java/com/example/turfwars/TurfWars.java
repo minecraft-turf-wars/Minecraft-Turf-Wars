@@ -5,12 +5,12 @@ import java.io.File;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.example.turfwars.commands.TurfWarsCommand;
-import com.example.turfwars.events.PlayerJoin;
 
 public class TurfWars extends JavaPlugin {
 
     private static TurfWars instance;
     private ArenaManager arenaManager;
+    private LobbyManager lobbyManager;
     private GameManager gameManager;
 
     @Override
@@ -24,11 +24,13 @@ public class TurfWars extends JavaPlugin {
 
         // Initialize the Managers
         this.arenaManager = new ArenaManager();
+        this.lobbyManager = new LobbyManager();
         this.gameManager = new GameManager(this);
+
         this.gameManager.setupGames();
 
         // Register event listeners
-        getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
+        getServer().getPluginManager().registerEvents(new GameListener(this.gameManager), this);
 
         // Register commands
         getCommand("turfwars").setExecutor(new TurfWarsCommand(this.gameManager));
@@ -42,22 +44,15 @@ public class TurfWars extends JavaPlugin {
         if (gameManager != null) {
             // Create a copy of the list of games to avoid ConcurrentModificationException
             for (Game game : new java.util.ArrayList<>(gameManager.getGames())) {
-                gameManager.endGame(game.getName());
+                gameManager.endGame(game.getName(), "§cGAME FORCE-ENDED");
             }
         }
         getLogger().info("TurfWars has been disabled!");
     }
 
-    public static TurfWars getInstance() {
-        return instance;
-    }
+    public static TurfWars getInstance() {return instance;}
 
-    public ArenaManager getArenaManager() {
-        return arenaManager;
-    }
+    public ArenaManager getArenaManager() {return arenaManager;}
 
-    public GameManager getGameManager() {
-        return gameManager;
-    }
+    public GameManager getGameManager() {return gameManager;}
 }
-

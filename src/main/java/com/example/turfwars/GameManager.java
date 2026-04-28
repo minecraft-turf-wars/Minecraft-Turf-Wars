@@ -13,6 +13,7 @@ public class GameManager {
         this.plugin = plugin;
     }
 
+  
     public void setupGames() {
         createGame("game-1");
         createGame("game-2");
@@ -20,16 +21,21 @@ public class GameManager {
 
     public void createGame(String name) {
         Game game = new Game(name);
-        game.startGame();
         games.put(name, game);
     }
 
-    public void endGame(String name) {
+    public void endGame(String name, String message) {
         Game game = games.get(name);
         if (game != null) {
-            game.endGame();
-            games.remove(name);
+            game.endGame(message);
         }
+    }
+
+    public void restartGame(String name){
+        games.remove(name);
+        createGame(name);
+
+        TurfWars.getInstance().getLogger().info("Game " + name + " has been reset and is ready for new players.");
     }
 
     public Collection<Game> getGames() {
