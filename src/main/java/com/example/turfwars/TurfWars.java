@@ -56,4 +56,3 @@ public class TurfWars extends JavaPlugin {
 
     public GameManager getGameManager() {return gameManager;}
 }
-

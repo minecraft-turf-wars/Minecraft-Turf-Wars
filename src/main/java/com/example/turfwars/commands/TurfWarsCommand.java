@@ -95,7 +95,7 @@ public class TurfWarsCommand implements CommandExecutor {
         player.sendMessage("§8§m----------------------------------------");
         player.sendMessage("§b§lTURF WARS §7- Minigame Plugin");
         player.sendMessage(" ");
-        player.sendMessage("§fDeveloped by: §aMatthew Pfleger §f& §aChase Holt §f& §aAndrew Burgos");
+        player.sendMessage("§fDeveloped by: §aMatthew Pfleger§f, §aChase Holt§f, §aAndrew Burgos§f,");
         player.sendMessage("§aJohn McDowell §f& §aHezekiah Holloman");
         player.sendMessage("§fSource Code: §ehttps://github.com/minecraft-turf-wars/minecraft-turf-wars");
         player.sendMessage("§8§m----------------------------------------");
