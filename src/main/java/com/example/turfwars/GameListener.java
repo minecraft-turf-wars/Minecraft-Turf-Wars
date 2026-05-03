@@ -52,6 +52,17 @@ public class GameListener implements Listener{
             return;
         }
 
+        boolean victimIsGold = game.getGoldTeam().contains(victim.getUniqueId());
+        boolean killerIsGold = game.getGoldTeam().contains(killer.getUniqueId());
+
+        // Both true (gold team) both false (black team)
+        if (victimIsGold == killerIsGold){
+            event.setCancelled(true);
+            killer.sendMessage("§cYou cannot hurt your teammates!");
+            arrow.remove();
+            return; 
+        }
+
         event.setDamage(1000.0);
         game.handleKill(killer);
     }
@@ -215,7 +226,6 @@ public class GameListener implements Listener{
         // Both true (gold team) both false (black team)
         if (victimIsGold == attackerIsGold){
             event.setCancelled(true);
-            attacker.sendMessage("§cYou cannot hurt your teammates!");
         }
     }
 
